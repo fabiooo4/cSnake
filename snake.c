@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#define NULL_POS -69
+
 typedef struct {
   int x;
   int y;
@@ -26,13 +28,19 @@ int main() {
   win = newwin(height + 4, width + 2, winY, winX);
 
   keypad(win, true);
-  // nodelay(win, true);
+  nodelay(win, true);
   noecho();
+  cbreak();
   curs_set(0);
 
-  pos snake;
-  snake.x = width / 2;
-  snake.y = height / 2;
+  pos snake[width * height];
+  snake[0].x = width / 2;
+  snake[0].y = height / 2;
+
+  for (int i = 1; i < width * height; i++) {
+    snake[i].x = NULL_POS;
+    snake[i].x = NULL_POS;
+  }
 
   pos food;
   food.x = 10;
@@ -69,11 +77,18 @@ int main() {
     }
 
     // Snake movement
-    snake.x += dir.x;
-    snake.y += dir.y;
+    for (int i = points; i >= 0; i--) {
+      if (i == 0) {
+        snake[0].x += dir.x;
+        snake[0].y += dir.y;
+      } else {
+        snake[i].x = snake[i - 1].x;
+        snake[i].y = snake[i - 1].y;
+      }
+    }
 
     // Border looping
-    if (snake.x == width + 1) {
+    /* if (snake.x == width + 1) {
       snake.x = 1;
     }
 
@@ -87,7 +102,7 @@ int main() {
 
     if (snake.y == 0) {
       snake.y = height;
-    }
+    } */
 
     werase(win);
 
@@ -102,21 +117,25 @@ int main() {
     sprintf(pointsStr, "Points: %d", points);
     mvwaddstr(win, height + 2, 2, pointsStr);
 
+    // Debug
     char x[height * width];
-    sprintf(x, "X: %d", snake.x);
-    mvwaddstr(win, height + 2, 11, x);
+    sprintf(x, "X: %d", snake[0].x);
+    mvwaddstr(win, height + 2, 12, x);
 
     char y[height * width];
-    sprintf(y, "Y: %d", snake.y);
-    mvwaddstr(win, height + 2, 17, y);
+    sprintf(y, "Y: %d", snake[0].y);
+    mvwaddstr(win, height + 2, 18, y);
 
     // Draw Snake + Food
-    mvwaddch(win, snake.y, snake.x, 'X');
+    for (int i = 0; i < width * height; i++) {
+      mvwaddch(win, snake[i].y, snake[i].x, 'X');
+    }
     mvwaddch(win, food.y, food.x, '@');
 
     // Food collection
-    if (snake.x == food.x && snake.y == food.y) {
+    if (snake[0].x == food.x && snake[0].y == food.y) {
       points++;
+
       // Spawn new food (not on borders)
       food.x = 1 + rand() % (width - 1);
       food.y = 1 + rand() % (height - 1);
