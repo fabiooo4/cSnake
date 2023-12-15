@@ -88,21 +88,21 @@ int main() {
     }
 
     // Border looping
-    /* if (snake.x == width + 1) {
-      snake.x = 1;
+    if (snake[0].x == width + 1) {
+      snake[0].x = 1;
     }
 
-    if (snake.x == 0) {
-      snake.x = width;
+    if (snake[0].x == 0) {
+      snake[0].x = width;
     }
 
-    if (snake.y == height + 1) {
-      snake.y = 1;
+    if (snake[0].y == height + 1) {
+      snake[0].y = 1;
     }
 
-    if (snake.y == 0) {
-      snake.y = height;
-    } */
+    if (snake[0].y == 0) {
+      snake[0].y = height;
+    }
 
     werase(win);
 
@@ -116,15 +116,6 @@ int main() {
     char pointsStr[height * width];
     sprintf(pointsStr, "Points: %d", points);
     mvwaddstr(win, height + 2, 2, pointsStr);
-
-    // Debug
-    char x[height * width];
-    sprintf(x, "X: %d", snake[0].x);
-    mvwaddstr(win, height + 2, 12, x);
-
-    char y[height * width];
-    sprintf(y, "Y: %d", snake[0].y);
-    mvwaddstr(win, height + 2, 18, y);
 
     // Draw Snake + Food
     for (int i = 0; i < width * height; i++) {
