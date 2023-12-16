@@ -8,6 +8,8 @@
 #include <unistd.h>
 
 #define NULL_POS -69
+#define SNAKE_COLOR 1
+#define FOOD_COLOR 2
 
 typedef struct {
   int x;
@@ -17,6 +19,14 @@ typedef struct {
 int main() {
   setlocale(LC_ALL, "");
   initscr(); // Initialize curses mode
+
+  // Colors
+  if (has_colors()) {
+    use_default_colors();
+    start_color();
+    init_pair(SNAKE_COLOR, COLOR_GREEN, -1);
+    init_pair(FOOD_COLOR, COLOR_RED, -1);
+  }
 
   // Window settings
   WINDOW *win;
@@ -117,14 +127,36 @@ int main() {
 
     // Bottom board
     char pointsStr[height * width];
-    sprintf(pointsStr, "@: %d", points);
-    mvwaddstr(win, height + 2, 2, pointsStr);
+    sprintf(pointsStr, "%d", points);
+    if (has_colors())
+      wattron(win, COLOR_PAIR(FOOD_COLOR));
 
-    // Draw Snake + Food
+    mvwaddstr(win, height + 2, 2, "\u2B24");
+
+    if (has_colors())
+      wattroff(win, COLOR_PAIR(FOOD_COLOR));
+
+    mvwaddstr(win, height + 2, 4, pointsStr);
+
+    // Draw Snake
+    if (has_colors())
+      wattron(win, COLOR_PAIR(SNAKE_COLOR));
+
     for (int i = 0; i < width * height; i++) {
       mvwaddwstr(win, snake[i].y, snake[i].x, L"\u2588");
     }
-    mvwaddch(win, food.y, food.x, '@');
+
+    if (has_colors())
+      wattroff(win, COLOR_PAIR(SNAKE_COLOR));
+
+    // Draw food
+    if (has_colors())
+
+      wattron(win, COLOR_PAIR(FOOD_COLOR));
+    mvwaddwstr(win, food.y, food.x, L"\u2B24");
+
+    if (has_colors())
+      wattroff(win, COLOR_PAIR(FOOD_COLOR));
 
     // Food collection
     if (snake[0].x == food.x && snake[0].y == food.y) {
