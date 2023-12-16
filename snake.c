@@ -46,6 +46,8 @@ int main() {
   cbreak();
   curs_set(0);
 
+  int time = 0;
+
   pos snake[width * height];
   snake[0].x = width / 2;
   snake[0].y = height / 2;
@@ -67,6 +69,11 @@ int main() {
   int snakeLength;
   int input;
   bool gameOver = false;
+
+  // Timer
+  int seconds;
+  int minutes;
+  int hours;
 
   while (((input = wgetch(win)) != 'q') && !gameOver) {
 
@@ -135,6 +142,7 @@ int main() {
     mvwaddch(win, height + 1, width + 1, ACS_RTEE);
 
     // Bottom board
+    // Food points
     char pointsStr[height * width];
     sprintf(pointsStr, "%d", points);
     if (has_colors())
@@ -146,6 +154,17 @@ int main() {
       wattroff(win, COLOR_PAIR(FOOD_COLOR));
 
     mvwaddstr(win, height + 2, 4, pointsStr);
+
+    // Timer
+    seconds = time / 10;
+    minutes = seconds / 60;
+    hours = minutes / 60;
+    seconds %= 60;
+    minutes %= 60;
+
+    char *timeStr = malloc(9 * sizeof(char));
+    sprintf(timeStr, "%02d:%02d:%02d", hours, minutes, seconds);
+    mvwaddstr(win, height + 2, width - 8, timeStr);
 
     // Draw food
     if (has_colors())
@@ -178,6 +197,7 @@ int main() {
 
     wrefresh(win);
     usleep(100000);
+    time++;
   }
 
   endwin();
