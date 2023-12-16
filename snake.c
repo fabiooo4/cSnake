@@ -64,33 +64,42 @@ int main() {
   dir.y = 0;
 
   int points = 0;
+  int snakeLength;
   int input;
+  bool gameOver = false;
 
-  while ((input = wgetch(win)) != 'q') {
+  while (((input = wgetch(win)) != 'q') && !gameOver) {
 
     // Input checks
-    if (input == KEY_DOWN && dir.y != -1) {
+    if ((input == KEY_DOWN || input == 's' || input == 'S') && dir.y != -1) {
       dir.x = 0;
       dir.y = 1;
     }
 
-    if (input == KEY_UP && dir.y != 1) {
+    if ((input == KEY_UP || input == 'w' || input == 'W') && dir.y != 1) {
       dir.x = 0;
       dir.y = -1;
     }
 
-    if (input == KEY_RIGHT && dir.x != -1) {
+    if ((input == KEY_RIGHT || input == 'd' || input == 'D') && dir.x != -1) {
       dir.x = 1;
       dir.y = 0;
     }
 
-    if (input == KEY_LEFT && dir.x != 1) {
+    if ((input == KEY_LEFT || input == 'a' || input == 'A') && dir.x != 1) {
       dir.x = -1;
       dir.y = 0;
     }
 
     // Snake movement
-    for (int i = points; i >= 0; i--) {
+    snakeLength = points + 1;
+    for (int i = snakeLength; i >= 0; i--) {
+      // Game over check
+      if (i != 0 && snake[0].x == snake[i].x && snake[0].y == snake[i].y) {
+        gameOver = true;
+        break;
+      }
+
       if (i == 0) {
         snake[0].x += dir.x;
         snake[0].y += dir.y;
@@ -138,6 +147,12 @@ int main() {
 
     mvwaddstr(win, height + 2, 4, pointsStr);
 
+    // Draw food
+    if (has_colors())
+
+      wattron(win, COLOR_PAIR(FOOD_COLOR));
+    mvwaddwstr(win, food.y, food.x, L"\u2B24");
+
     // Draw Snake
     if (has_colors())
       wattron(win, COLOR_PAIR(SNAKE_COLOR));
@@ -148,12 +163,6 @@ int main() {
 
     if (has_colors())
       wattroff(win, COLOR_PAIR(SNAKE_COLOR));
-
-    // Draw food
-    if (has_colors())
-
-      wattron(win, COLOR_PAIR(FOOD_COLOR));
-    mvwaddwstr(win, food.y, food.x, L"\u2B24");
 
     if (has_colors())
       wattroff(win, COLOR_PAIR(FOOD_COLOR));
@@ -167,6 +176,7 @@ int main() {
       food.y = 1 + rand() % (height - 1);
     }
 
+    wrefresh(win);
     usleep(100000);
   }
 
