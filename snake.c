@@ -75,129 +75,221 @@ int main() {
   int minutes;
   int hours;
 
-  while (((input = wgetch(win)) != 'q') && !gameOver) {
+  // Menu screen with selectable options
+  int menuInput;
+  int menuSelected = 0;
+  bool menu = true;
 
-    // Input checks
-    if ((input == KEY_DOWN || input == 's' || input == 'S') && dir.y != -1) {
-      dir.x = 0;
-      dir.y = 1;
+  while (true) {
+    while (menu) {
+      werase(win);
+
+      // Draw board
+      wborder(win, 0, 0, 0, 0, 0, 0, 0, 0);
+
+      // Title
+      if (has_colors())
+        wattron(win, COLOR_PAIR(SNAKE_COLOR));
+      mvwaddstr(win, 2, width / 2 - 14, " ____  __ _   __   __ _  ____");
+      mvwaddstr(win, 3, width / 2 - 14, "/ ___)(  ( \\ / _\\ (  / )(  __)");
+      mvwaddstr(win, 4, width / 2 - 14, "\\___ \\/    //    \\ )  (  ) _) ");
+      mvwaddstr(win, 5, width / 2 - 14, "(____/\\_)__)\\_/\\_/(__\\_)(____)");
+      if (has_colors())
+        wattroff(win, COLOR_PAIR(SNAKE_COLOR));
+
+      // Menu options
+      char *menuOptions[3] = {"Start", "Options", "Exit"};
+
+      for (int i = 0; i < 3; i++) {
+        if (i == menuSelected) {
+          wattron(win, A_REVERSE);
+        }
+
+        mvwaddstr(win, height / 2 + i + 5, width / 2 - 2, menuOptions[i]);
+
+        if (i == menuSelected) {
+          wattroff(win, A_REVERSE);
+        }
+      }
+
+      // Menu input
+      menuInput = wgetch(win);
+
+      if (menuInput == KEY_DOWN || menuInput == 's' || menuInput == 'S') {
+        menuSelected++;
+        if (menuSelected > 2) {
+          menuSelected = 0;
+        }
+      }
+
+      if (menuInput == KEY_UP || menuInput == 'w' || menuInput == 'W') {
+        menuSelected--;
+        if (menuSelected < 0) {
+          menuSelected = 2;
+        }
+      }
+
+      if (menuInput == '\n') {
+        // Start
+        if (menuSelected == 0) {
+          gameOver = false;
+          menu = false;
+        }
+
+        // Options
+        if (menuSelected == 1) {
+          // Options
+        }
+
+        // Exit
+        if (menuSelected == 2) {
+          endwin();
+          return 0;
+        }
+      }
+
+      wrefresh(win);
+      usleep(100000);
     }
 
-    if ((input == KEY_UP || input == 'w' || input == 'W') && dir.y != 1) {
-      dir.x = 0;
-      dir.y = -1;
-    }
+    // Game loop
+    while (!gameOver) {
+      input = wgetch(win);
 
-    if ((input == KEY_RIGHT || input == 'd' || input == 'D') && dir.x != -1) {
-      dir.x = 1;
-      dir.y = 0;
-    }
-
-    if ((input == KEY_LEFT || input == 'a' || input == 'A') && dir.x != 1) {
-      dir.x = -1;
-      dir.y = 0;
-    }
-
-    // Snake movement
-    snakeLength = points + 1;
-    for (int i = snakeLength; i >= 0; i--) {
-      // Game over check
-      if (i != 0 && snake[0].x == snake[i].x && snake[0].y == snake[i].y) {
+      if (input == 'q') {
+        menu = true;
         gameOver = true;
-        break;
       }
 
-      if (i == 0) {
-        snake[0].x += dir.x;
-        snake[0].y += dir.y;
-      } else {
-        snake[i].x = snake[i - 1].x;
-        snake[i].y = snake[i - 1].y;
+      // Pause game
+      if (input == 'p') {
+        while ((input = wgetch(win)) != 'p' && input != 'q') {
+          usleep(100000);
+        }
       }
+
+      // Input checks
+      if ((input == KEY_DOWN || input == 's' || input == 'S') && dir.y != -1) {
+        dir.x = 0;
+        dir.y = 1;
+      }
+
+      if ((input == KEY_UP || input == 'w' || input == 'W') && dir.y != 1) {
+        dir.x = 0;
+        dir.y = -1;
+      }
+
+      if ((input == KEY_RIGHT || input == 'd' || input == 'D') && dir.x != -1) {
+        dir.x = 1;
+        dir.y = 0;
+      }
+
+      if ((input == KEY_LEFT || input == 'a' || input == 'A') && dir.x != 1) {
+        dir.x = -1;
+        dir.y = 0;
+      }
+
+      // Snake movement
+      snakeLength = points + 1;
+      for (int i = snakeLength; i >= 0; i--) {
+        // Game over check
+        if (i != 0 && snake[0].x == snake[i].x && snake[0].y == snake[i].y) {
+          gameOver = true;
+          break;
+        }
+
+        if (i == 0) {
+          snake[0].x += dir.x;
+          snake[0].y += dir.y;
+        } else {
+          snake[i].x = snake[i - 1].x;
+          snake[i].y = snake[i - 1].y;
+        }
+      }
+
+      // Border looping
+      if (snake[0].x == width + 1) {
+        snake[0].x = 1;
+      }
+
+      if (snake[0].x == 0) {
+        snake[0].x = width;
+      }
+
+      if (snake[0].y == height + 1) {
+        snake[0].y = 1;
+      }
+
+      if (snake[0].y == 0) {
+        snake[0].y = height;
+      }
+
+      werase(win);
+
+      // Draw board
+      wborder(win, 0, 0, 0, 0, 0, 0, 0, 0);
+      mvwhline(win, height + 1, 1, 0, width);
+      mvwaddch(win, height + 1, 0, ACS_LTEE);
+      mvwaddch(win, height + 1, width + 1, ACS_RTEE);
+
+      // Bottom board
+      // Food points
+      char pointsStr[height * width];
+      sprintf(pointsStr, "%d", points);
+      if (has_colors())
+        wattron(win, COLOR_PAIR(FOOD_COLOR));
+
+      mvwaddstr(win, height + 2, 2, "\u2B24");
+
+      if (has_colors())
+        wattroff(win, COLOR_PAIR(FOOD_COLOR));
+
+      mvwaddstr(win, height + 2, 4, pointsStr);
+
+      // Timer
+      seconds = time / 10;
+      minutes = seconds / 60;
+      hours = minutes / 60;
+      seconds %= 60;
+      minutes %= 60;
+
+      char *timeStr = malloc(9 * sizeof(char));
+      sprintf(timeStr, "%02d:%02d:%02d", hours, minutes, seconds);
+      mvwaddstr(win, height + 2, width - 8, timeStr);
+
+      // Draw food
+      if (has_colors())
+
+        wattron(win, COLOR_PAIR(FOOD_COLOR));
+      mvwaddwstr(win, food.y, food.x, L"\u2B24");
+
+      // Draw Snake
+      if (has_colors())
+        wattron(win, COLOR_PAIR(SNAKE_COLOR));
+
+      for (int i = 0; i < width * height; i++) {
+        mvwaddwstr(win, snake[i].y, snake[i].x, L"\u2588");
+      }
+
+      if (has_colors())
+        wattroff(win, COLOR_PAIR(SNAKE_COLOR));
+
+      if (has_colors())
+        wattroff(win, COLOR_PAIR(FOOD_COLOR));
+
+      // Food collection
+      if (snake[0].x == food.x && snake[0].y == food.y) {
+        points++;
+
+        // Spawn new food (not on borders)
+        food.x = 1 + rand() % (width - 1);
+        food.y = 1 + rand() % (height - 1);
+      }
+
+      wrefresh(win);
+      usleep(100000);
+      time++;
     }
-
-    // Border looping
-    if (snake[0].x == width + 1) {
-      snake[0].x = 1;
-    }
-
-    if (snake[0].x == 0) {
-      snake[0].x = width;
-    }
-
-    if (snake[0].y == height + 1) {
-      snake[0].y = 1;
-    }
-
-    if (snake[0].y == 0) {
-      snake[0].y = height;
-    }
-
-    werase(win);
-
-    // Draw board
-    wborder(win, 0, 0, 0, 0, 0, 0, 0, 0);
-    mvwhline(win, height + 1, 1, 0, width);
-    mvwaddch(win, height + 1, 0, ACS_LTEE);
-    mvwaddch(win, height + 1, width + 1, ACS_RTEE);
-
-    // Bottom board
-    // Food points
-    char pointsStr[height * width];
-    sprintf(pointsStr, "%d", points);
-    if (has_colors())
-      wattron(win, COLOR_PAIR(FOOD_COLOR));
-
-    mvwaddstr(win, height + 2, 2, "\u2B24");
-
-    if (has_colors())
-      wattroff(win, COLOR_PAIR(FOOD_COLOR));
-
-    mvwaddstr(win, height + 2, 4, pointsStr);
-
-    // Timer
-    seconds = time / 10;
-    minutes = seconds / 60;
-    hours = minutes / 60;
-    seconds %= 60;
-    minutes %= 60;
-
-    char *timeStr = malloc(9 * sizeof(char));
-    sprintf(timeStr, "%02d:%02d:%02d", hours, minutes, seconds);
-    mvwaddstr(win, height + 2, width - 8, timeStr);
-
-    // Draw food
-    if (has_colors())
-
-      wattron(win, COLOR_PAIR(FOOD_COLOR));
-    mvwaddwstr(win, food.y, food.x, L"\u2B24");
-
-    // Draw Snake
-    if (has_colors())
-      wattron(win, COLOR_PAIR(SNAKE_COLOR));
-
-    for (int i = 0; i < width * height; i++) {
-      mvwaddwstr(win, snake[i].y, snake[i].x, L"\u2588");
-    }
-
-    if (has_colors())
-      wattroff(win, COLOR_PAIR(SNAKE_COLOR));
-
-    if (has_colors())
-      wattroff(win, COLOR_PAIR(FOOD_COLOR));
-
-    // Food collection
-    if (snake[0].x == food.x && snake[0].y == food.y) {
-      points++;
-
-      // Spawn new food (not on borders)
-      food.x = 1 + rand() % (width - 1);
-      food.y = 1 + rand() % (height - 1);
-    }
-
-    wrefresh(win);
-    usleep(100000);
-    time++;
   }
 
   endwin();
