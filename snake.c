@@ -17,6 +17,7 @@ typedef struct {
 } pos;
 
 void menu(WINDOW *win, bool *menu, int width, int height, bool *gameOver) {
+  bool settingsScr = false;
   int menuInput;
   int menuSelected = 0;
   while (menu) {
@@ -78,7 +79,77 @@ void menu(WINDOW *win, bool *menu, int width, int height, bool *gameOver) {
 
       // Options
       if (menuSelected == 1) {
-        // Options
+        settingsScr = true;
+        while (settingsScr) {
+          werase(win);
+
+          // Draw board
+          wborder(win, 0, 0, 0, 0, 0, 0, 0, 0);
+
+          // Title
+          if (has_colors())
+            wattron(win, COLOR_PAIR(SNAKE_COLOR));
+          mvwaddstr(win, 2, width / 2 - 14, " ____  __ _   __   __ _  ____");
+          mvwaddstr(win, 3, width / 2 - 14, "/ ___)(  ( \\ / _\\ (  / )(  __)");
+          mvwaddstr(win, 4, width / 2 - 14,
+                    "\\___ \\/    //    \\ )  (  ) _) ");
+          mvwaddstr(win, 5, width / 2 - 14,
+                    "(____/\\_)__)\\_/\\_/(__\\_)(____)");
+          if (has_colors())
+            wattroff(win, COLOR_PAIR(SNAKE_COLOR));
+
+          // Menu options
+          char *settingsOptions[4] = {"Size", "Speed", "Wall wrap", "Back"};
+
+          for (int i = 0; i < 4; i++) {
+            if (i == menuSelected) {
+              wattron(win, A_REVERSE);
+            }
+
+            mvwaddstr(win, height / 2 + i + 5, width / 2 - 2,
+                      settingsOptions[i]);
+
+            if (i == menuSelected) {
+              wattroff(win, A_REVERSE);
+            }
+          }
+
+          // Menu input
+          menuInput = wgetch(win);
+
+          if (menuInput == KEY_DOWN || menuInput == 's' || menuInput == 'S') {
+            menuSelected++;
+            if (menuSelected > 3) {
+              menuSelected = 0;
+            }
+          }
+
+          if (menuInput == KEY_UP || menuInput == 'w' || menuInput == 'W') {
+            menuSelected--;
+            if (menuSelected < 0) {
+              menuSelected = 3;
+            }
+          }
+
+          if (menuInput == '\n') {
+            // Width
+            if (menuSelected == 0) {
+              // Size
+            } else if (menuSelected == 1) {
+              // Speed
+            } else if (menuSelected == 2) {
+              // Wall wrap
+            } else if (menuSelected == 3) {
+              settingsScr = false;
+              continue;
+            }
+
+            // Exit
+          } else if (menuInput == 'q') {
+            endwin();
+            exit(0);
+          }
+        }
       }
 
       // Exit
@@ -89,7 +160,6 @@ void menu(WINDOW *win, bool *menu, int width, int height, bool *gameOver) {
     }
 
     wrefresh(win);
-    usleep(100000);
   }
 }
 
