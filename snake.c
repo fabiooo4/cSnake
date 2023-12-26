@@ -80,6 +80,7 @@ void menu(WINDOW *win, bool *menu, int width, int height, bool *gameOver) {
       // Options
       if (menuSelected == 1) {
         settingsScr = true;
+        menuSelected = 0;
         while (settingsScr) {
           werase(win);
 
@@ -98,15 +99,21 @@ void menu(WINDOW *win, bool *menu, int width, int height, bool *gameOver) {
           if (has_colors())
             wattroff(win, COLOR_PAIR(SNAKE_COLOR));
 
-          // Menu options
+          // Settings options
           char *settingsOptions[4] = {"Size", "Speed", "Wall wrap", "Back"};
+          char *settingsSize[3] = {"Small", "Medium", "Large"};
+          char *settingsSpeed[3] = {"Slow", "Medium", "Fast"};
+          char *settingsWallWrap[2] = {"Off", "On"};
+          int sizeSelected = 1;
+          int speedSelected = 1;
+          int wallWrapSelected = 0;
 
           for (int i = 0; i < 4; i++) {
             if (i == menuSelected) {
               wattron(win, A_REVERSE);
             }
 
-            mvwaddstr(win, height / 2 + i + 5, width / 2 - 2,
+            mvwaddstr(win, height / 2 + i + 5, width / 2 - 9,
                       settingsOptions[i]);
 
             if (i == menuSelected) {
@@ -114,7 +121,39 @@ void menu(WINDOW *win, bool *menu, int width, int height, bool *gameOver) {
             }
           }
 
-          // Menu input
+          // Reverse selected value
+          if (menuSelected == 0) {
+            wattron(win, A_REVERSE);
+          }
+
+          mvwaddstr(win, height / 2 + 5, width / 2 + 7,
+                    settingsSize[sizeSelected]);
+
+          if (menuSelected == 0) {
+            wattroff(win, A_REVERSE);
+          }
+
+          if (menuSelected == 1) {
+            wattron(win, A_REVERSE);
+          }
+          mvwaddstr(win, height / 2 + 6, width / 2 + 7,
+                    settingsSpeed[speedSelected]);
+
+          if (menuSelected == 1) {
+            wattroff(win, A_REVERSE);
+          }
+
+          if (menuSelected == 2) {
+            wattron(win, A_REVERSE);
+          }
+          mvwaddstr(win, height / 2 + 7, width / 2 + 7,
+                    settingsWallWrap[wallWrapSelected]);
+
+          if (menuSelected == 2) {
+            wattroff(win, A_REVERSE);
+          }
+
+          // Settings input
           menuInput = wgetch(win);
 
           if (menuInput == KEY_DOWN || menuInput == 's' || menuInput == 'S') {
@@ -131,23 +170,15 @@ void menu(WINDOW *win, bool *menu, int width, int height, bool *gameOver) {
             }
           }
 
-          if (menuInput == '\n') {
-            // Width
-            if (menuSelected == 0) {
-              // Size
-            } else if (menuSelected == 1) {
-              // Speed
-            } else if (menuSelected == 2) {
-              // Wall wrap
-            } else if (menuSelected == 3) {
-              settingsScr = false;
-              continue;
-            }
+          if (menuInput == '\n' && menuSelected == 3) {
+            // Back
+            settingsScr = false;
+            menuSelected = 0;
+            continue;
+          }
 
-            // Exit
-          } else if (menuInput == 'q') {
-            endwin();
-            exit(0);
+          if (menuSelected == 0 && menuInput == KEY_RIGHT) {
+            continue;
           }
         }
       }
