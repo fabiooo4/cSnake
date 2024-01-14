@@ -16,11 +16,32 @@ typedef struct {
   int y;
 } pos;
 
-void menu(WINDOW *win, bool *menu, int width, int height, bool *gameOver) {
+WINDOW *win;
+
+int height = 20;
+int width = 40;
+int speed = 70000;
+
+bool gameOver = false;
+bool menuScr = true;
+
+// Settings options
+char *settingsOptions[4] = {"Size", "Speed", "Wall wrap", "Back"};
+char *settingsSize[3] = {"Small", "Medium", "Large"};
+char *settingsSpeed[3] = {"Slow", "Medium", "Fast"};
+char *settingsWallWrap[2] = {"Off", "On"};
+int sizeSelected = 1;
+int speedSelected = 1;
+int wallWrap = 0;
+
+void menu(WINDOW *win) {
+  width = 40;
+  height = 20;
+
   bool settingsScr = false;
   int menuInput;
   int menuSelected = 0;
-  while (menu) {
+  while (menuScr) {
     werase(win);
 
     // Draw board
@@ -71,8 +92,8 @@ void menu(WINDOW *win, bool *menu, int width, int height, bool *gameOver) {
     if (menuInput == '\n') {
       // Start
       if (menuSelected == 0) {
-        *menu = false;
-        *gameOver = false;
+        menuScr = false;
+        gameOver = false;
 
         break;
       }
@@ -81,6 +102,7 @@ void menu(WINDOW *win, bool *menu, int width, int height, bool *gameOver) {
       if (menuSelected == 1) {
         settingsScr = true;
         menuSelected = 0;
+
         while (settingsScr) {
           werase(win);
 
@@ -98,15 +120,6 @@ void menu(WINDOW *win, bool *menu, int width, int height, bool *gameOver) {
                     "(____/\\_)__)\\_/\\_/(__\\_)(____)");
           if (has_colors())
             wattroff(win, COLOR_PAIR(SNAKE_COLOR));
-
-          // Settings options
-          char *settingsOptions[4] = {"Size", "Speed", "Wall wrap", "Back"};
-          char *settingsSize[3] = {"Small", "Medium", "Large"};
-          char *settingsSpeed[3] = {"Slow", "Medium", "Fast"};
-          char *settingsWallWrap[2] = {"Off", "On"};
-          int sizeSelected = 1;
-          int speedSelected = 1;
-          int wallWrapSelected = 0;
 
           for (int i = 0; i < 4; i++) {
             if (i == menuSelected) {
@@ -147,7 +160,7 @@ void menu(WINDOW *win, bool *menu, int width, int height, bool *gameOver) {
             wattron(win, A_REVERSE);
           }
           mvwaddstr(win, height / 2 + 7, width / 2 + 7,
-                    settingsWallWrap[wallWrapSelected]);
+                    settingsWallWrap[wallWrap]);
 
           if (menuSelected == 2) {
             wattroff(win, A_REVERSE);
@@ -167,6 +180,57 @@ void menu(WINDOW *win, bool *menu, int width, int height, bool *gameOver) {
             menuSelected--;
             if (menuSelected < 0) {
               menuSelected = 3;
+            }
+          }
+
+          if ((menuInput == KEY_RIGHT || menuInput == '\n' ||
+               menuInput == 'd') &&
+              menuSelected == 0) {
+            sizeSelected++;
+            if (sizeSelected > 2) {
+              sizeSelected = 0;
+            }
+          }
+
+          if ((menuInput == KEY_RIGHT || menuInput == '\n' ||
+               menuInput == 'd') &&
+              menuSelected == 1) {
+            speedSelected++;
+            if (speedSelected > 2) {
+              speedSelected = 0;
+            }
+          }
+
+          if ((menuInput == KEY_RIGHT || menuInput == '\n' ||
+               menuInput == 'd') &&
+              menuSelected == 2) {
+            wallWrap++;
+            if (wallWrap > 1) {
+              wallWrap = 0;
+            }
+          }
+
+          if ((menuInput == KEY_LEFT || menuInput == 'a') &&
+              menuSelected == 0) {
+            sizeSelected--;
+            if (sizeSelected < 0) {
+              sizeSelected = 2;
+            }
+          }
+
+          if ((menuInput == KEY_LEFT || menuInput == 'a') &&
+              menuSelected == 1) {
+            speedSelected--;
+            if (speedSelected < 0) {
+              speedSelected = 2;
+            }
+          }
+
+          if ((menuInput == KEY_LEFT || menuInput == 'a') &&
+              menuSelected == 2) {
+            wallWrap--;
+            if (wallWrap < 0) {
+              wallWrap = 1;
             }
           }
 
@@ -194,7 +258,39 @@ void menu(WINDOW *win, bool *menu, int width, int height, bool *gameOver) {
   }
 }
 
-void game(WINDOW *win, int width, int height, bool *menuScr, bool *gameOver) {
+void resizeWin(WINDOW **win, int height, int width, int starty, int startx) {
+  *win = newwin(height + 4, width + 2, starty, startx);
+
+  keypad(*win, true);
+  nodelay(*win, true);
+  noecho();
+  cbreak();
+  curs_set(0);
+}
+
+void game(WINDOW *win) {
+  if (sizeSelected == 0) {
+    height = 10;
+    width = 20;
+    resizeWin(&win, height, width, (LINES - height) / 2, (COLS - width) / 2);
+  } else if (sizeSelected == 1) {
+    height = 12;
+    width = 25;
+    resizeWin(&win, height, width, (LINES - height) / 2, (COLS - width) / 2);
+  } else if (sizeSelected == 2) {
+    height = 20;
+    width = 40;
+    resizeWin(&win, height, width, (LINES - height) / 2, (COLS - width) / 2);
+  }
+
+  if (speedSelected == 0) {
+    speed = 170000;
+  } else if (speedSelected == 1) {
+    speed = 120000;
+  } else if (speedSelected == 2) {
+    speed = 70000;
+  }
+
   int time = 0;
 
   pos snake[width * height];
@@ -223,12 +319,12 @@ void game(WINDOW *win, int width, int height, bool *menuScr, bool *gameOver) {
   int minutes;
   int hours;
 
-  while (!*gameOver) {
+  while (!gameOver) {
     input = wgetch(win);
 
     if (input == 'q') {
-      *menuScr = true;
-      *gameOver = true;
+      menuScr = true;
+      gameOver = true;
     }
 
     // Pause game
@@ -264,8 +360,8 @@ void game(WINDOW *win, int width, int height, bool *menuScr, bool *gameOver) {
     for (int i = snakeLength; i >= 0; i--) {
       // Game over check
       if (i != 0 && snake[0].x == snake[i].x && snake[0].y == snake[i].y) {
-        *gameOver = true;
-        *menuScr = true;
+        gameOver = true;
+        menuScr = true;
         break;
       }
 
@@ -279,20 +375,29 @@ void game(WINDOW *win, int width, int height, bool *menuScr, bool *gameOver) {
     }
 
     // Border looping
-    if (snake[0].x == width + 1) {
-      snake[0].x = 1;
-    }
+    if (wallWrap) {
+      if (snake[0].x == width + 1) {
+        snake[0].x = 1;
+      }
 
-    if (snake[0].x == 0) {
-      snake[0].x = width;
-    }
+      if (snake[0].x == 0) {
+        snake[0].x = width;
+      }
 
-    if (snake[0].y == height + 1) {
-      snake[0].y = 1;
-    }
+      if (snake[0].y == height + 1) {
+        snake[0].y = 1;
+      }
 
-    if (snake[0].y == 0) {
-      snake[0].y = height;
+      if (snake[0].y == 0) {
+        snake[0].y = height;
+      }
+    } else {
+      if (snake[0].x == width + 1 || snake[0].x == 0 ||
+          snake[0].y == height + 1 || snake[0].y == 0) {
+        gameOver = true;
+        menuScr = true;
+        break;
+      }
     }
 
     werase(win);
@@ -358,7 +463,7 @@ void game(WINDOW *win, int width, int height, bool *menuScr, bool *gameOver) {
     }
 
     wrefresh(win);
-    usleep(100000);
+    usleep(speed);
     time++;
   }
 }
@@ -376,10 +481,6 @@ int main() {
   }
 
   // Window settings
-  WINDOW *win;
-
-  int height = 20;
-  int width = 40;
 
   // Window position to middle of the screen
   int winX = (COLS - width) / 2;
@@ -393,17 +494,14 @@ int main() {
   cbreak();
   curs_set(0);
 
-  bool menuScr = true;
-  bool gameOver = false;
-
   while (true) {
     // Menu screen
     if (menuScr)
-      menu(win, &menuScr, width, height, &gameOver);
+      menu(win);
 
     // Game loop
     if (!gameOver)
-      game(win, width, height, &menuScr, &gameOver);
+      game(win);
   }
 
   endwin();
