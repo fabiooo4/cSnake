@@ -19,7 +19,7 @@ typedef struct {
 WINDOW *win;
 
 int height = 20;
-int width = 40;
+int width = 41;
 int speed = 70000;
 
 bool gameOver = false;
@@ -35,7 +35,7 @@ int speedSelected = 1;
 int wallWrap = 0;
 
 void menu(WINDOW *win) {
-  width = 40;
+  width = 41;
   height = 20;
 
   bool settingsScr = false;
@@ -259,6 +259,8 @@ void menu(WINDOW *win) {
 }
 
 void resizeWin(WINDOW **win, int height, int width, int starty, int startx) {
+  werase(*win);
+  wrefresh(*win);
   *win = newwin(height + 4, width + 2, starty, startx);
 
   keypad(*win, true);
@@ -268,18 +270,35 @@ void resizeWin(WINDOW **win, int height, int width, int starty, int startx) {
   curs_set(0);
 }
 
+WINDOW *pauseWin(int starty, int startx) {
+  WINDOW *pausew = newwin(5, 21, starty, startx);
+
+  keypad(pausew, true);
+  nodelay(pausew, true);
+  noecho();
+  cbreak();
+  curs_set(0);
+  wborder(pausew, 0, 0, 0, 0, 0, 0, 0, 0);
+  mvwaddstr(pausew, 1, 8, "Paused");
+  mvwaddstr(pausew, 3, 2, "Press P to resume");
+
+  wrefresh(pausew);
+
+  return pausew;
+}
+
 void game(WINDOW *win) {
   if (sizeSelected == 0) {
     height = 10;
-    width = 20;
+    width = 21;
     resizeWin(&win, height, width, (LINES - height) / 2, (COLS - width) / 2);
   } else if (sizeSelected == 1) {
-    height = 12;
-    width = 25;
+    height = 15;
+    width = 31;
     resizeWin(&win, height, width, (LINES - height) / 2, (COLS - width) / 2);
   } else if (sizeSelected == 2) {
     height = 20;
-    width = 40;
+    width = 41;
     resizeWin(&win, height, width, (LINES - height) / 2, (COLS - width) / 2);
   }
 
@@ -288,7 +307,7 @@ void game(WINDOW *win) {
   } else if (speedSelected == 1) {
     speed = 120000;
   } else if (speedSelected == 2) {
-    speed = 70000;
+    speed = 80000;
   }
 
   int time = 0;
@@ -329,9 +348,14 @@ void game(WINDOW *win) {
 
     // Pause game
     if (input == 'p') {
-      while ((input = wgetch(win)) != 'p' && input != 'q') {
-        usleep(100000);
+      WINDOW *pausew = pauseWin((LINES - 3) / 2, (COLS - 19) / 2);
+      while (true) {
+        input = wgetch(pausew);
+        if (input == 'p' || input == 'q') {
+          break;
+        }
       }
+      delwin(pausew);
     }
 
     // Input checks
