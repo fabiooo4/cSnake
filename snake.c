@@ -287,6 +287,29 @@ WINDOW *pauseWin(int starty, int startx) {
   return pausew;
 }
 
+WINDOW *gameOverWin(int width, int height, int starty, int startx) {
+  WINDOW *gameOverw = newwin(height, width, starty, startx);
+
+  keypad(gameOverw, true);
+  nodelay(gameOverw, true);
+  noecho();
+  cbreak();
+  curs_set(0);
+
+  return gameOverw;
+}
+
+int kbhit(void) {
+  int ch = getch();
+
+  if (ch != ERR) {
+    ungetch(ch);
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
 void game(WINDOW *win) {
   if (sizeSelected == 0) {
     height = 10;
@@ -339,6 +362,7 @@ void game(WINDOW *win) {
   int hours;
 
   while (!gameOver) {
+
     input = wgetch(win);
 
     if (input == 'q') {
@@ -384,9 +408,26 @@ void game(WINDOW *win) {
     for (int i = snakeLength; i >= 0; i--) {
       // Game over check
       if (i != 0 && snake[0].x == snake[i].x && snake[0].y == snake[i].y) {
-        gameOver = true;
-        menuScr = true;
-        break;
+        WINDOW *gameOverw = gameOverWin(1, 1, snake[0].y + (LINES - height) / 2,
+                                        snake[0].x + (COLS - width) / 2);
+        while (true) {
+          input = wgetch(gameOverw);
+
+          if (has_colors())
+            wattron(gameOverw, COLOR_PAIR(FOOD_COLOR));
+
+          mvwaddstr(gameOverw, 0, 0, "X");
+
+          if (has_colors())
+            wattroff(gameOverw, COLOR_PAIR(FOOD_COLOR));
+
+          if (input == 'q' || input == '\n') {
+            gameOver = true;
+            menuScr = true;
+            break;
+          }
+        }
+        delwin(gameOverw);
       }
 
       if (i == 0) {
@@ -416,11 +457,29 @@ void game(WINDOW *win) {
         snake[0].y = height;
       }
     } else {
+      // Game over check
       if (snake[0].x == width + 1 || snake[0].x == 0 ||
           snake[0].y == height + 1 || snake[0].y == 0) {
-        gameOver = true;
-        menuScr = true;
-        break;
+        WINDOW *gameOverw = gameOverWin(1, 1, snake[0].y + (LINES - height) / 2,
+                                        snake[0].x + (COLS - width) / 2);
+        while (true) {
+          input = wgetch(gameOverw);
+
+          if (has_colors())
+            wattron(gameOverw, COLOR_PAIR(FOOD_COLOR));
+
+          mvwaddstr(gameOverw, 0, 0, "X");
+
+          if (has_colors())
+            wattroff(gameOverw, COLOR_PAIR(FOOD_COLOR));
+
+          if (input == 'q' || input == '\n') {
+            gameOver = true;
+            menuScr = true;
+            break;
+          }
+        }
+        delwin(gameOverw);
       }
     }
 
@@ -486,6 +545,9 @@ void game(WINDOW *win) {
       food.y = 1 + rand() % (height - 1);
     }
 
+    if (gameOver) {
+      break;
+    }
     wrefresh(win);
     usleep(speed);
     time++;
