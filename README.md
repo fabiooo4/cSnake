@@ -8,7 +8,7 @@ This is the classic game of snake for the terminal in C using the ncursesw libra
 
 ## Running the game
 
-To play just execute the snake binary found the releases page.
+To play just execute in your terminal the snake binary found in the [releases](https://github.com/fabiooo4/cSnake/releases) page.
 
 ## How to play
 
