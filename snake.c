@@ -518,9 +518,12 @@ void game(WINDOW *win) {
 
     // Draw food
     if (has_colors())
-
       wattron(win, COLOR_PAIR(FOOD_COLOR));
+
     mvwaddwstr(win, food.y, food.x, L"\u2B24");
+
+    if (has_colors())
+      wattroff(win, COLOR_PAIR(FOOD_COLOR));
 
     // Draw Snake
     if (has_colors())
@@ -533,16 +536,25 @@ void game(WINDOW *win) {
     if (has_colors())
       wattroff(win, COLOR_PAIR(SNAKE_COLOR));
 
-    if (has_colors())
-      wattroff(win, COLOR_PAIR(FOOD_COLOR));
-
     // Food collection
     if (snake[0].x == food.x && snake[0].y == food.y) {
       points++;
 
-      // Spawn new food (not on borders)
-      food.x = 1 + rand() % (width - 1);
-      food.y = 1 + rand() % (height - 1);
+      // Spawn new food (not on borders and not on snake)
+      bool foodSpawned = false;
+      while (!foodSpawned) {
+        food.x = rand() % (width - 1) + 1;
+        food.y = rand() % (height - 1) + 1;
+
+        for (int i = 0; i < width * height; i++) {
+          if (food.x == snake[i].x && food.y == snake[i].y) {
+            foodSpawned = false;
+            break;
+          } else {
+            foodSpawned = true;
+          }
+        }
+      }
     }
 
     if (gameOver) {
